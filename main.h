@@ -28,7 +28,11 @@ struct fm_state {
 	uint32_t timeout;
 };
 
-void tweet_test(void);
+int sdr_init(void);
+int tune_to(uint32_t frequency);
+
+void tweet(const char *text);
+void send_dm(const char *text);
 
 void multiply(int ar, int aj, int br, int bj, int *cr, int *cj);
 int rot_direction(int ar, int aj, int br, int bj);
@@ -37,6 +41,6 @@ void full_demod(struct fm_state *fm);
 int init_LEDs(FILE ** f_green_led, FILE ** f_red_led);
 void set_LED(FILE * f_led, int state);
 
-extern pthread_mutex_t data_ready;	// locked when no fresh data available
-extern pthread_mutex_t data_write;	// locked when r/w buffer
+extern rtlsdr_dev_t * dev;
 extern uint32_t scan_index;
+extern char txt_buffer[128];

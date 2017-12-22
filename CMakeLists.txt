@@ -48,7 +48,7 @@ set(includedir \${prefix}/include)
 
 FILE(GLOB liboauth_sources ./liboauth/*.c)
 
-add_executable(pbot main.c fsk.c leds.c tweet.c ${liboauth_sources})
+add_executable(pbot main.c fsk.c leds.c tweet.c sdr.c ${liboauth_sources})
 
 target_link_libraries(
     pbot

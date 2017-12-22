@@ -52,17 +52,21 @@ void process_dir(struct fm_state *fm, int dir) {
 		fm->sr_data |= (dir > 0 ? 0 : 1);
 		
 		if (fm->sr_data == 0x7CD215D8) {
-			printf("Got sync !\n");
+			printf("Got sync on channel %u!\n", scan_index);
+			snprintf(txt_buffer, 128, "Got sync on channel %u at %u", scan_index, (uint32_t)time(NULL));
+			send_dm(txt_buffer);
+			
 			fm->sync_status = 2;
-			fm->timeout = 2000;
+			fm->timeout = 1000;
 		//} else if (fm->sr_data == 0x7A89C197) {
 			//printf("Got idle !\n");
 			//fm->sync_status = 3;
 		} else if (fm->sr_data == 0xAAAAAAAA) {
-			//printf("Got preamble !\n");
-			if (fm->sync_status == 0) printf("Got preamble on channel %u!\n", scan_index);
+			// 32 bits should last (32/1200)*20000 = 533 samples
+			if (fm->sync_status == 0)
+				printf("Got preamble on channel %u!\n", scan_index);
 			fm->sync_status = 1;
-			fm->timeout = 2000;
+			fm->timeout = 1000;
 		}
 	}
 	
@@ -123,22 +127,17 @@ void full_demod(struct fm_state *fm) {
 	}
 	fm->signal_len = i2;
 	
-	//pthread_mutex_unlock(&data_write);		// Won't be using fm->buf anymore
-	
 	// Demodulate FSK by just figuring out the direction of rotation
 	
 	dir = rot_direction(fm->signal[0], fm->signal[1], fm->pre_r, fm->pre_j);
-	//fm->signal2[0] = (int16_t)pcm;
 	process_dir(fm, dir);
 	
 	// We're running at 300000 / 15 = 20ksps here
 	
 	for (i = 2; i < (fm->signal_len); i += 2) {
 		dir = rot_direction(fm->signal[i], fm->signal[i+1], fm->signal[i-2], fm->signal[i-1]);
-		//fm->signal2[i/2] = (int16_t)pcm;
 		process_dir(fm, dir);
 	}
 	fm->pre_r = fm->signal[fm->signal_len - 2];
 	fm->pre_j = fm->signal[fm->signal_len - 1];
-	//fm->signal2_len = fm->signal_len/2;
 }
